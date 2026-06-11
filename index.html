@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark" class="font-normal">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HabitOrbit - 프리미엄 AI 습관 관리 비서</title>
+  
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <!-- App Container -->
+  <div class="app-layout">
+    
+    <!-- Sidebar Navigation (Desktop) -->
+    <aside class="sidebar glass">
+      <div class="sidebar-brand">
+        <div class="logo-icon">
+          <i data-lucide="orbit" class="neon-glow-icon"></i>
+        </div>
+        <span class="logo-text">HabitOrbit</span>
+      </div>
+      
+      <!-- User Mini Profile -->
+      <div class="user-profile-summary">
+        <div class="avatar-container">
+          <div class="avatar-glow"></div>
+          <span class="user-level-badge" id="sidebar-level">Lv.1</span>
+        </div>
+        <div class="user-info">
+          <span class="user-name">성공궤도 여행자</span>
+          <div class="xp-bar-container">
+            <div class="xp-bar" id="sidebar-xp-bar" style="width: 0%;"></div>
+          </div>
+          <span class="xp-text" id="sidebar-xp-text">0 / 100 XP</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <button class="menu-item active" data-tab="habits">
+          <i data-lucide="check-square"></i>
+          <span>오늘의 습관</span>
+        </button>
+        <button class="menu-item" data-tab="analytics">
+          <i data-lucide="bar-chart-2"></i>
+          <span>분석 & 통계</span>
+        </button>
+        <button class="menu-item" data-tab="ai-coach">
+          <i data-lucide="sparkles"></i>
+          <span>AI 코칭</span>
+          <span class="badge-dot pulse-animation"></span>
+        </button>
+        <button class="menu-item" data-tab="social">
+          <i data-lucide="users"></i>
+          <span>소셜 챌린지</span>
+        </button>
+        <button class="menu-item" data-tab="settings">
+          <i data-lucide="settings"></i>
+          <span>설정</span>
+        </button>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="streak-counter-glow">
+          <i data-lucide="flame" class="streak-icon animate-flame"></i>
+          <span class="streak-count" id="sidebar-streak">0</span>일 연속
+        </div>
+      </div>
+    </aside>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-nav glass">
+      <button class="mobile-menu-item active" data-tab="habits">
+        <i data-lucide="check-square"></i>
+        <span>습관</span>
+      </button>
+      <button class="mobile-menu-item" data-tab="analytics">
+        <i data-lucide="bar-chart-2"></i>
+        <span>통계</span>
+      </button>
+      <button class="mobile-menu-item" data-tab="ai-coach">
+        <i data-lucide="sparkles"></i>
+        <span>AI코치</span>
+      </button>
+      <button class="mobile-menu-item" data-tab="social">
+        <i data-lucide="users"></i>
+        <span>소셜</span>
+      </button>
+      <button class="mobile-menu-item" data-tab="settings">
+        <i data-lucide="settings"></i>
+        <span>설정</span>
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Header -->
+      <header class="main-header glass">
+        <div class="header-left">
+          <h1 id="current-date">2026.06.11 목요일</h1>
+          <p class="header-subtitle" id="header-subtitle">오늘도 우주 최고의 하루를 만들어봐요! ✨</p>
+        </div>
+        <div class="header-right">
+          <!-- Notification Center -->
+          <div class="notification-dropdown-container">
+            <button class="header-action-btn" id="notif-btn" title="알림">
+              <i data-lucide="bell"></i>
+              <span class="badge-count" id="notif-count">2</span>
+            </button>
+            <div class="notification-dropdown glass hidden" id="notif-dropdown">
+              <div class="notif-header">
+                <h3>스마트 리마인더</h3>
+                <button id="clear-notifs-btn">모두 지우기</button>
+              </div>
+              <div class="notif-list" id="notif-list">
+                <!-- Notifications will be loaded here dynamically -->
+              </div>
+            </div>
+          </div>
+          <!-- Quick Add Button -->
+          <button class="btn btn-primary" id="header-add-habit-btn">
+            <i data-lucide="plus"></i>
+            <span>새 습관 추가</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- View Containers -->
+      <div class="view-container">
+        
+        <!-- Tab 1: Habits Dashboard -->
+        <section class="tab-view active" id="tab-habits">
+          <!-- Quick Stats Cards Grid -->
+          <div class="quick-stats-grid">
+            <div class="stat-card glass">
+              <div class="stat-icon-wrap violet">
+                <i data-lucide="check-circle-2"></i>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">오늘의 달성률</span>
+                <div class="stat-value-row">
+                  <span class="stat-value" id="today-completion-rate">0%</span>
+                  <span class="completion-soft-label">(80% 성공 인정)</span>
+                </div>
+                <div class="stat-progress-bar-bg">
+                  <div class="stat-progress-bar violet-glow" id="today-progress-bar" style="width: 0%;"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="stat-card glass">
+              <div class="stat-icon-wrap orange">
+                <i data-lucide="flame" class="animate-flame"></i>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">현재 스트릭</span>
+                <span class="stat-value" id="today-streak-count">0 일 연속</span>
+                <span class="stat-desc" id="streak-milestone-text">다음 뱃지까지 3일 남음</span>
+              </div>
+            </div>
+
+            <div class="stat-card glass">
+              <div class="stat-icon-wrap blue">
+                <i data-lucide="trophy"></i>
+              </div>
+              <div class="stat-info">
+                <span class="stat-label">레벨 및 경험치</span>
+                <span class="stat-value" id="today-level-val">Lv.1 Voyager</span>
+                <span class="stat-desc" id="today-xp-val">다음 레벨까지 100 XP 필요</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Habit List Controls -->
+          <div class="habit-list-controls">
+            <div class="filters glass-input">
+              <button class="filter-btn active" data-filter="all">전체</button>
+              <button class="filter-btn" data-filter="exercise">🏋️ 운동</button>
+              <button class="filter-btn" data-filter="learning">📚 학습</button>
+              <button class="filter-btn" data-filter="relationship">🤝 관계</button>
+              <button class="filter-btn" data-filter="custom">🔮 커스텀</button>
+            </div>
+            
+            <!-- Quick habit presets -->
+            <div class="habit-presets">
+              <span class="preset-label">🔥 추천 루틴:</span>
+              <button class="btn btn-outline-sm preset-btn" data-preset="morning-run">아침 유산소</button>
+              <button class="btn btn-outline-sm preset-btn" data-preset="english-vocab">영어 20단어</button>
+              <button class="btn btn-outline-sm preset-btn" data-preset="child-play">자녀와 30분</button>
+            </div>
+          </div>
+
+          <!-- Habit Cards Container -->
+          <div class="habit-list-container">
+            <h2 class="section-title">오늘 실행할 습관 <span class="badge-count-pill" id="habit-count-badge">0</span></h2>
+            <div class="habit-grid" id="habit-grid">
+              <!-- Habit cards dynamically injected here -->
+            </div>
+          </div>
+
+          <!-- Minimal Routine Trigger Guide / Warmup Section -->
+          <div class="warmup-section glass">
+            <div class="warmup-header">
+              <div class="warmup-title">
+                <i data-lucide="play-circle" class="violet-text"></i>
+                <div>
+                  <h3>"시작이 반!" 5분 미니멀 스타터</h3>
+                  <p>완벽주의를 버리세요! 5분 운동, 단어 5개만 읽어도 뇌는 좋은 습관으로 코딩을 시작합니다.</p>
+                </div>
+              </div>
+              <button class="btn btn-outline" id="quick-warmup-btn">지금 5분 시작하기</button>
+            </div>
+          </div>
+
+          <!-- Daily Reflection Section -->
+          <div class="reflection-card glass">
+            <div class="reflection-header">
+              <i data-lucide="book-open" class="emerald-text"></i>
+              <h3>오늘의 회고 (Daily Journal)</h3>
+            </div>
+            <p class="reflection-desc">오늘 습관을 지속하는 데 어떤 어려움이 있었나요? 사소한 장애물과 내일의 극복 아이디어를 기록해 보세요.</p>
+            <div class="reflection-body">
+              <textarea id="daily-journal-input" placeholder="예: 야근이 있어 유산소 운동 시간을 맞추기 힘들었다. 내일은 퇴근 직후 운동복으로 갈아입고 헬스장으로 직행하는 습관 스태킹을 적용해 봐야겠다." class="glass-textarea"></textarea>
+              <div class="reflection-footer">
+                <div class="difficulty-rating">
+                  <span>오늘의 체감 난이도:</span>
+                  <div class="stars" id="difficulty-stars">
+                    <button class="star-btn" data-val="1" title="쉬움">⭐</button>
+                    <button class="star-btn" data-val="2" title="보통">⭐⭐</button>
+                    <button class="star-btn" data-val="3" title="어려움">⭐⭐⭐</button>
+                  </div>
+                </div>
+                <button class="btn btn-secondary" id="save-journal-btn">일지 저장 & XP 획득</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tab 2: Analytics & Statistics -->
+        <section class="tab-view" id="tab-analytics">
+          <div class="analytics-layout">
+            
+            <!-- Statistics Row 1: Comprehensive Completion & Radar -->
+            <div class="chart-grid">
+              <div class="chart-card glass">
+                <h3>종합 달성률 추이 (최근 7일)</h3>
+                <div class="chart-container">
+                  <canvas id="trendChart"></canvas>
+                </div>
+              </div>
+              <div class="chart-card glass">
+                <h3>카테고리별 달성 비중</h3>
+                <div class="chart-container">
+                  <canvas id="categoryChart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Heatmap Calendar (GitHub style grass) -->
+            <div class="heatmap-card glass">
+              <div class="heatmap-header">
+                <div class="heatmap-title">
+                  <i data-lucide="calendar" class="violet-text"></i>
+                  <div>
+                    <h3>습관 행성 궤도 히트맵 (Habit Heatmap)</h3>
+                    <p>하루하루 습관을 완수하여 푸른색 네온 잔디를 심고 나만의 우주를 완성하세요.</p>
+                  </div>
+                </div>
+                <div class="heatmap-legend">
+                  <span>Less</span>
+                  <div class="legend-color level-0"></div>
+                  <div class="legend-color level-1"></div>
+                  <div class="legend-color level-2"></div>
+                  <div class="legend-color level-3"></div>
+                  <div class="legend-color level-4"></div>
+                  <span>More</span>
+                </div>
+              </div>
+              
+              <!-- Heatmap Grid Container -->
+              <div class="heatmap-wrapper" id="heatmap-wrapper">
+                <!-- Heatmap grid generated dynamically by dashboard.js -->
+              </div>
+            </div>
+
+            <!-- Badges Collection Grid -->
+            <div class="badges-card glass">
+              <h3>수집한 업적 배지 (<span id="unlocked-badges-count">0</span>/8)</h3>
+              <div class="badges-grid" id="badges-grid">
+                <!-- Badges dynamically rendered here -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tab 3: AI Coach -->
+        <section class="tab-view" id="tab-ai-coach">
+          <div class="ai-coach-layout">
+            
+            <!-- AI Coach Profile card -->
+            <div class="ai-profile-card glass">
+              <div class="ai-avatar-wrap">
+                <div class="ai-avatar-glow"></div>
+                <i data-lucide="sparkles" class="ai-coach-icon animate-pulse"></i>
+              </div>
+              <div class="ai-coach-intro">
+                <h2>AI 코치 Orbit-X</h2>
+                <span class="badge-role">지능형 습관 분석가</span>
+                <p>당신의 습관 기록 패턴을 학습하여 완벽주의를 완화하고, 스트릭을 유지하도록 돕는 개인 비서입니다.</p>
+              </div>
+            </div>
+
+            <!-- AI Coach Advice Panel -->
+            <div class="coach-advice-grid">
+              
+              <!-- Realtime Analysis Card -->
+              <div class="advice-card glass main-advice">
+                <div class="card-accent-line"></div>
+                <div class="advice-header">
+                  <i data-lucide="message-circle" class="violet-text"></i>
+                  <h3>실시간 코칭 및 격려</h3>
+                </div>
+                <div class="advice-content" id="ai-coaching-message">
+                  데이터를 분석하는 중입니다. 습관을 몇 개 체크해 보세요!
+                </div>
+                <div class="advice-footer">
+                  <button class="btn btn-outline-sm" id="refresh-coach-btn">
+                    <i data-lucide="refresh-cw"></i> 실시간 분석 갱신
+                  </button>
+                </div>
+              </div>
+
+              <!-- Slump & Risk Detector -->
+              <div class="advice-card glass slump-warning">
+                <div class="card-accent-line yellow"></div>
+                <div class="advice-header">
+                  <i data-lucide="alert-triangle" class="orange-text animate-pulse"></i>
+                  <h3>슬럼프 및 체인 붕괴 감지</h3>
+                </div>
+                <div class="advice-content" id="ai-slump-warning">
+                  현재 체인 상태가 매우 견고합니다. 훌륭히 유지하고 계시네요!
+                </div>
+              </div>
+
+              <!-- Weekly Report Generator -->
+              <div class="advice-card glass weekly-report-card">
+                <div class="card-accent-line emerald"></div>
+                <div class="advice-header">
+                  <i data-lucide="award" class="emerald-text"></i>
+                  <h3>주간 회고 & AI 피드백 보고서</h3>
+                </div>
+                <div class="advice-content" id="weekly-report-content">
+                  이번 주에 작성한 일일 회고록들을 취합하여, AI가 문제점을 극복하기 위한 다이내믹 피드백 보고서를 추출합니다.
+                </div>
+                <div class="advice-footer">
+                  <button class="btn btn-primary-sm" id="generate-weekly-report-btn">주간 분석 레포트 생성</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tab 4: Social & Challenges -->
+        <section class="tab-view" id="tab-social">
+          <div class="social-layout">
+            
+            <!-- Friend Leaderboard -->
+            <div class="leaderboard-card glass">
+              <div class="card-header">
+                <i data-lucide="crown" class="yellow-text"></i>
+                <h3>습관 동반자 리더보드</h3>
+              </div>
+              <p class="section-desc">매주 갱신되는 친구들과의 선의의 스트릭 경쟁판입니다.</p>
+              <div class="leaderboard-list" id="social-leaderboard">
+                <!-- Injected via social.js -->
+              </div>
+            </div>
+
+            <!-- Social Group Challenges -->
+            <div class="challenges-section">
+              <h2 class="section-title">함께하는 그룹 챌린지</h2>
+              <div class="challenges-grid" id="social-challenges-grid">
+                <!-- Injected via social.js -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tab 5: Settings -->
+        <section class="tab-view" id="tab-settings">
+          <div class="settings-layout glass">
+            <h2>설정 및 사용자 옵션</h2>
+            <hr class="divider">
+
+            <!-- Aesthetics Setting -->
+            <div class="setting-group">
+              <h3>🎨 디자인 및 인터페이스</h3>
+              <div class="setting-item">
+                <div class="setting-desc">
+                  <strong>다크 모드 / 라이트 모드</strong>
+                  <p>눈의 피로를 감소시킬 프리미엄 테마를 전환합니다.</p>
+                </div>
+                <div class="theme-switch-container">
+                  <button class="theme-btn active" id="theme-dark-btn"><i data-lucide="moon"></i> 다크</button>
+                  <button class="theme-btn" id="theme-light-btn"><i data-lucide="sun"></i> 라이트</button>
+                </div>
+              </div>
+              
+              <div class="setting-item">
+                <div class="setting-desc">
+                  <strong>접근성: 글씨 크기 조절</strong>
+                  <p>화면에 표시되는 글꼴 크기를 보기 편하게 조절합니다.</p>
+                </div>
+                <div class="font-switch-container">
+                  <button class="font-btn active" data-font="normal">기본</button>
+                  <button class="font-btn" data-font="large">크게</button>
+                  <button class="font-btn" data-font="extra">매우 크게</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Habit Stacking / Templates -->
+            <div class="setting-group">
+              <h3>🌱 습관 형성 도우미</h3>
+              <div class="setting-item">
+                <div class="setting-desc">
+                  <strong>습관 스태킹(Stacking) 가이드</strong>
+                  <p>기존의 고정된 루틴 뒤에 새로운 습관을 바로 결합시켜 뇌가 습관을 쉽게 기억하게 만듭니다.</p>
+                </div>
+                <div class="stacking-tips">
+                  <div class="tip-formula">"나는 **[기존 습관]**을 하고 나면 바로 **[새로운 습관]**을 하겠다."</div>
+                  <p class="tip-example">예: "나는 아침에 커피 머신을 켜고 나면(기존) 바로 영어단어를 5개 암기하겠다(새로운)."</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cloud & Backup Sync Setting -->
+            <div class="setting-group">
+              <h3>💾 데이터 백업 및 관리</h3>
+              <div class="setting-item">
+                <div class="setting-desc">
+                  <strong>데이터 백업 및 복원 (오프라인 브라우저 데이터)</strong>
+                  <p>작성된 모든 습관 데이터 및 성취 로그를 로컬 파일로 저장하거나 다시 로드합니다.</p>
+                </div>
+                <div class="backup-actions">
+                  <button class="btn btn-outline-sm" id="export-data-btn"><i data-lucide="download"></i> 데이터 내보내기</button>
+                  <button class="btn btn-outline-sm" id="import-data-btn-trigger"><i data-lucide="upload"></i> 데이터 가져오기</button>
+                  <input type="file" id="import-data-file" class="hidden" accept=".json">
+                </div>
+              </div>
+              
+              <div class="setting-item text-danger-zone">
+                <div class="setting-desc">
+                  <strong>초기화 구역</strong>
+                  <p>습관, 레벨, 스트릭, 일일 기록 등을 포함한 로컬 브라우저 데이터를 전면 삭제합니다. (복구 불가능)</p>
+                </div>
+                <button class="btn btn-danger-sm" id="reset-all-data-btn"><i data-lucide="trash-2"></i> 모든 데이터 초기화</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- FLOATING QUICK ADD BUTTON (MOBILE) -->
+  <button class="mobile-floating-add-btn" id="mobile-floating-btn" title="습관 간편 추가">
+    <i data-lucide="plus"></i>
+  </button>
+
+  <!-- MODALS -->
+  
+  <!-- 1. HABIT CREATE / EDIT MODAL -->
+  <div class="modal-overlay hidden" id="habit-modal">
+    <div class="modal-content glass">
+      <div class="modal-header">
+        <h2 id="modal-title">새로운 습관 생성</h2>
+        <button class="modal-close" id="close-habit-modal"><i data-lucide="x"></i></button>
+      </div>
+      
+      <form id="habit-form" class="modal-body">
+        <input type="hidden" id="habit-id">
+        
+        <!-- Category Selector -->
+        <div class="form-group">
+          <label>습관 카테고리</label>
+          <div class="category-select-grid">
+            <label class="category-option active">
+              <input type="radio" name="category" value="exercise" checked class="hidden">
+              <span class="icon">🏋️</span>
+              <span>운동</span>
+            </label>
+            <label class="category-option">
+              <input type="radio" name="category" value="learning" class="hidden">
+              <span class="icon">📚</span>
+              <span>학습</span>
+            </label>
+            <label class="category-option">
+              <input type="radio" name="category" value="relationship" class="hidden">
+              <span class="icon">🤝</span>
+              <span>관계</span>
+            </label>
+            <label class="category-option">
+              <input type="radio" name="category" value="custom" class="hidden">
+              <span class="icon">🔮</span>
+              <span>커스텀</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Common: Name & Stack -->
+        <div class="form-group">
+          <label for="habit-name">습관 명칭</label>
+          <input type="text" id="habit-name" required placeholder="예: 스쿼트 3세트하기, 영어 영단어 암기 등" class="glass-input-text">
+        </div>
+
+        <div class="form-group">
+          <label for="habit-stack">습관 스태킹 연결 (선택)</label>
+          <input type="text" id="habit-stack" placeholder="예: '퇴근 후 집에 도착하자마자' 바로 이 습관을 시작" class="glass-input-text">
+        </div>
+
+        <!-- Category Dynamic Input Fields -->
+        <div class="dynamic-category-fields" id="dynamic-category-fields">
+          
+          <!-- Exercise Fields (Visible by default) -->
+          <div class="category-fields-group" id="fields-exercise">
+            <div class="form-group">
+              <label>운동 상세 유형</label>
+              <select id="exercise-type" class="glass-select">
+                <option value="weight">웨이트 트레이닝 (무게/세트)</option>
+                <option value="cardio">유산소 운동 (시간/거리/칼로리)</option>
+              </select>
+            </div>
+            
+            <div id="exercise-weight-inputs" class="input-subrow">
+              <div class="form-subgroup">
+                <label for="weight-target">목표 무게 (kg)</label>
+                <input type="number" id="weight-target" class="glass-input-text" value="20" min="0">
+              </div>
+              <div class="form-subgroup">
+                <label for="sets-target">목표 세트</label>
+                <input type="number" id="sets-target" class="glass-input-text" value="3" min="1">
+              </div>
+              <div class="form-subgroup">
+                <label for="reps-target">세트당 횟수</label>
+                <input type="number" id="reps-target" class="glass-input-text" value="12" min="1">
+              </div>
+            </div>
+            
+            <div id="exercise-cardio-inputs" class="input-subrow hidden">
+              <div class="form-subgroup">
+                <label for="cardio-time-target">목표 시간 (분)</label>
+                <input type="number" id="cardio-time-target" class="glass-input-text" value="30" min="1">
+              </div>
+              <div class="form-subgroup">
+                <label for="cardio-dist-target">목표 거리 (km)</label>
+                <input type="number" id="cardio-dist-target" class="glass-input-text" value="3" min="0" step="0.1">
+              </div>
+              <div class="form-subgroup">
+                <label for="cardio-cal-target">목표 칼로리 (kcal)</label>
+                <input type="number" id="cardio-cal-target" class="glass-input-text" value="200" min="0">
+              </div>
+            </div>
+          </div>
+
+          <!-- Learning Fields (Hidden by default) -->
+          <div class="category-fields-group hidden" id="fields-learning">
+            <div class="input-subrow">
+              <div class="form-subgroup">
+                <label for="vocab-target">하루 암기 단어 수</label>
+                <input type="number" id="vocab-target" class="glass-input-text" value="20" min="1">
+              </div>
+              <div class="form-subgroup check-item-wrap">
+                <label for="ebbinghaus-active" class="checkbox-label">
+                  <input type="checkbox" id="ebbinghaus-active" checked>
+                  <span>에빙하우스 망각곡선 기반 자동 복습 주기 알림 받기</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Relationship Fields (Hidden by default) -->
+          <div class="category-fields-group hidden" id="fields-relationship">
+            <div class="input-subrow">
+              <div class="form-subgroup">
+                <label for="relation-time-target">목표 시간 (분)</label>
+                <input type="number" id="relation-time-target" class="glass-input-text" value="30" min="1">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="relation-memo">활동 내용 & 간이 추억 메모</label>
+              <input type="text" id="relation-memo" class="glass-input-text" placeholder="예: 아이와 색종이 접기, 놀이터 시소 타기">
+            </div>
+          </div>
+
+          <!-- Custom Fields (Hidden by default) -->
+          <div class="category-fields-group hidden" id="fields-custom">
+            <div class="form-group">
+              <label for="custom-unit">목표 달성 기준 및 단위</label>
+              <input type="text" id="custom-unit" class="glass-input-text" placeholder="예: 책 10페이지 읽기, 물 2리터 마시기">
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Common Settings: Difficulty, Warmup, Reminders -->
+        <div class="input-subrow mt-4">
+          <div class="form-subgroup">
+            <label for="habit-difficulty">목표 습관 난이도</label>
+            <select id="habit-difficulty" class="glass-select">
+              <option value="easy">쉬움 (가벼운 시작)</option>
+              <option value="normal" selected>보통 (일반적 노력)</option>
+              <option value="hard">어려움 (집중력 요구)</option>
+            </select>
+          </div>
+          
+          <div class="form-subgroup">
+            <label for="habit-reminder-time">스마트 알림 시간</label>
+            <input type="time" id="habit-reminder-time" class="glass-input-text" value="09:00">
+          </div>
+        </div>
+
+        <div class="form-group mt-2">
+          <label for="habit-priority">우선 순위</label>
+          <select id="habit-priority" class="glass-select">
+            <option value="low">낮음</option>
+            <option value="medium" selected>중간</option>
+            <option value="high">높음 🔥 (최우선 수행)</option>
+          </select>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="delete-habit-btn">삭제</button>
+          <div class="modal-primary-actions">
+            <button type="button" class="btn btn-outline" id="close-habit-modal-2">취소</button>
+            <button type="submit" class="btn btn-primary">저장하기</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. HABIT LOG INPUT / SWIPE COMPANION MODAL -->
+  <div class="modal-overlay hidden" id="log-modal">
+    <div class="modal-content glass max-w-sm">
+      <div class="modal-header">
+        <h2 id="log-modal-title">오늘의 습관 실천 기록</h2>
+        <button class="modal-close" id="close-log-modal"><i data-lucide="x"></i></button>
+      </div>
+      <form id="log-form" class="modal-body">
+        <input type="hidden" id="log-habit-id">
+        <div id="dynamic-log-inputs">
+          <!-- 카테고리에 맞는 입력 폼이 여기에 생성됨 -->
+        </div>
+        
+        <div class="form-group mt-3">
+          <label for="log-memo">실천 짧은 소감/사진 (선택)</label>
+          <input type="text" id="log-memo" placeholder="예: 너무 귀찮았지만 하니까 기분이 상쾌하다!" class="glass-input-text">
+        </div>
+
+        <!-- Voice / Photo helper simulation -->
+        <div class="simulated-inputs">
+          <button type="button" class="btn btn-outline-sm flex-center" id="voice-sim-btn" title="음성 받아쓰기 시뮬레이션">
+            <i data-lucide="mic"></i> <span>음성 기록</span>
+          </button>
+          <button type="button" class="btn btn-outline-sm flex-center" id="photo-sim-btn" title="추억 사진/완료 인증샷 시뮬레이션">
+            <i data-lucide="camera"></i> <span>사진 인증</span>
+          </button>
+        </div>
+        
+        <div id="simulated-input-status" class="simulated-status"></div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="close-log-modal-2">취소</button>
+          <button type="submit" class="btn btn-primary">실천 완료 체크! ✨</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. TIMER MODAL ("지금 시작하기") -->
+  <div class="modal-overlay hidden" id="timer-modal">
+    <div class="modal-content glass max-w-sm text-center">
+      <div class="modal-header">
+        <h2>실행 가이드 타이머</h2>
+        <button class="modal-close" id="close-timer-modal"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <h3 id="timer-habit-name" class="timer-habit-title">5분 미니멀 워밍업</h3>
+        <p class="timer-guide-text" id="timer-guide">일단 5분만 부담 없이 시작해 봅시다. 뇌를 워밍업하고 나면 본 궤도에 오르게 됩니다.</p>
+        
+        <!-- Timer Clock visual -->
+        <div class="timer-visual-container">
+          <div class="timer-progress-ring-wrap">
+            <svg class="progress-ring" width="200" height="200">
+              <circle class="progress-ring__circle-bg" stroke="rgba(255,255,255,0.05)" stroke-width="8" fill="transparent" r="88" cx="100" cy="100"/>
+              <circle id="timer-progress-ring" class="progress-ring__circle" stroke="#8b5cf6" stroke-width="8" fill="transparent" r="88" cx="100" cy="100"/>
+            </svg>
+            <div class="timer-countdown" id="timer-countdown-val">05:00</div>
+          </div>
+        </div>
+
+        <div class="timer-controls">
+          <button class="btn btn-outline-round" id="timer-reset-btn" title="재설정"><i data-lucide="rotate-ccw"></i></button>
+          <button class="btn btn-primary-round" id="timer-play-btn" title="시작/일시정지"><i data-lucide="play"></i></button>
+          <button class="btn btn-emerald-round" id="timer-complete-btn" title="달성 완료"><i data-lucide="check"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. GAMIFICATION CELEBRATION MODAL (LEVEL UP / BADGE UNLOCKED) -->
+  <div class="modal-overlay hidden" id="celebration-modal">
+    <div class="modal-content glass max-w-sm text-center celebration-content">
+      <div class="celebration-particles" id="celebration-particles"></div>
+      <div class="modal-body py-6">
+        <div class="celebration-icon-wrap" id="celeb-icon-container">
+          <i data-lucide="award" class="celebration-icon animate-bounce"></i>
+        </div>
+        
+        <h2 class="celeb-title" id="celeb-title">LEVEL UP!</h2>
+        <p class="celeb-subtitle" id="celeb-subtitle">축하합니다! 당신은 한 단계 더 성장했습니다.</p>
+        
+        <div class="celeb-badge-detail hidden" id="celeb-badge-detail">
+          <div class="badge-item-lg">
+            <div class="badge-lg-avatar" id="celeb-badge-icon">🔥</div>
+            <h4 id="celeb-badge-name">습관 불꽃러</h4>
+            <p id="celeb-badge-desc">7일 연속 스트릭을 달성하여 습관의 궤도를 안착시켰습니다.</p>
+          </div>
+        </div>
+
+        <div class="celeb-level-detail" id="celeb-level-detail">
+          <div class="level-display-row">
+            <span class="level-old" id="celeb-level-old">Lv.1</span>
+            <i data-lucide="chevrons-right" class="violet-text"></i>
+            <span class="level-new" id="celeb-level-new">Lv.2</span>
+          </div>
+          <p class="level-reward-text">새로운 업적 배지 획득 슬롯이 해제되었습니다!</p>
+        </div>
+
+        <button class="btn btn-primary mt-4 w-full" id="close-celeb-btn">우주의 기운 받기 ✨</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Javascript Modules -->
+  <script src="js/storage.js"></script>
+  <script src="js/habitManager.js"></script>
+  <script src="js/aiCoach.js"></script>
+  <script src="js/social.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/uiController.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
